@@ -1,13 +1,23 @@
+using System.Text.Json.Serialization;
+using API.Extensions;
 using Application.Services;
+using Domain.Models.Samples;
+using Infrastructure.Contexts;
 using Infrastructure.Services;
+using Infrastructure.Services.Connections;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
-// Add services to the container.
-builder.Services.AddSingleton<ContextFactory>();
-builder.Services.AddScoped<CopyTableStructureService>();
+builder.Services.AddApplicationDbContexts();
+builder.Services.AddApplicationRepositories();
+builder.Services.AddApplicationServices();
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers(_ => { })
+    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -21,10 +31,38 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
+// app.UseHttpsRedirection();
 app.UseAuthorization();
-
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
+    var sampleContext = serviceProvider.GetRequiredService<SampleContext>();
+
+    if (await sampleContext.Database.CanConnectAsync())
+    {
+        await sampleContext.Database.EnsureDeletedAsync();
+    }
+
+    sampleContext.Database.EnsureCreated();
+    sampleContext.Samples.Add(new Sample()
+    {
+        Title = "title",
+        Content = "content",
+    });
+    await sampleContext.SaveChangesAsync();
+
+    // Register SQL source...
+    var registerResourceService = serviceProvider.GetRequiredService<RegisterResourceService>();
+    await registerResourceService.ExecuteAsync(app.Environment.ContentRootPath);
+
+    // Register connection source...
+    var connectionSourceManager = serviceProvider.GetRequiredService<ConnectionSourceManager>();
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+
+    connectionSourceManager.Add(ConnectionSourceType.Source, configuration.GetConnectionString("Source")!);
+    connectionSourceManager.Add(ConnectionSourceType.Destination, configuration.GetConnectionString("Destination")!);
+}
 
 app.Run();
