@@ -24,10 +24,7 @@ public class RowsCopyOriginToDestinationService
     public async Task ExecuteAsync(RowCopyOriginToDestinationRequest request)
     {
         // 테이블 정보 분석
-        var columnInfos = await _columnInfoRepository.FindAllAsync(
-            info => info.TableName == request.Origin.Name);
-
-        var columnComputedInfos = await _columnInfoRepository.GetComputed(request.Origin.Name);
+        var columnComputedInfos = await _columnInfoRepository.GetComputedAllAsync(request.Origin.Name);
         
         // 테이블 데이터 호출
         var sourceData = await _dynamicGetDataRepository.GetAllAsync(
@@ -37,7 +34,7 @@ public class RowsCopyOriginToDestinationService
         // 테이블 정보 생성
         var table = Table.Create(
             request.Destination,
-            columnInfos,
+            columnComputedInfos,
             sourceData);
 
         // 테이블 데이터를 삽입

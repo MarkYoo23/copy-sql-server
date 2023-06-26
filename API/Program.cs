@@ -40,12 +40,15 @@ using (var scope = app.Services.CreateScope())
     var serviceProvider = scope.ServiceProvider;
     var sampleContext = serviceProvider.GetRequiredService<SampleContext>();
 
-    if (await sampleContext.Database.CanConnectAsync())
+    var cts = new CancellationTokenSource(5000);
+
+    if (await sampleContext.Database.CanConnectAsync(cts.Token))
     {
-        await sampleContext.Database.EnsureDeletedAsync();
+        await sampleContext.Database.EnsureDeletedAsync(cts.Token);
     }
 
-    sampleContext.Database.EnsureCreated();
+    await sampleContext.Database.EnsureCreatedAsync(cts.Token);
+    
     sampleContext.Samples.Add(new Sample()
     {
         Title = "title",

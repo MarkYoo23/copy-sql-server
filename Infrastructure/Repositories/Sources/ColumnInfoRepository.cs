@@ -4,6 +4,7 @@ using Domain.Models.Masters.Columns;
 using Domain.Repositories.Sources;
 using Infrastructure.Contexts;
 using Infrastructure.Repositories.Commons;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories.Sources;
@@ -17,22 +18,26 @@ public class ColumnInfoRepository : ReadOnlyRepository<ColumnInfo>, IColumnInfoR
         _context = context;
     }
 
-    public async Task<IEnumerable<ColumnComputedInfo>> GetComputed(string tableName)
+    public async Task<IEnumerable<ColumnComputedInfo>> GetComputedAllAsync(string tableName)
     {
         // ReSharper disable once StringLiteralTypo
         var query = @$"
 SELECT 
-    COLUMN_NAME as ColumnName, 
+    COLUMN_NAME as Name, 
     COLUMNPROPERTY(OBJECT_ID('dbo' + '.' + '{tableName}'), COLUMN_NAME, 'IsComputed') as IsComputed 
 FROM
     INFORMATION_SCHEMA.COLUMNS
 WHERE
     TABLE_NAME = '{tableName}'";
 
-        var dbConnection = _context.Database.GetDbConnection();
+        await using var dbConnection = new SqlConnection(_context.Database.GetConnectionString());
         await dbConnection.OpenAsync();
 
         var infos = await dbConnection.QueryAsync<ColumnComputedInfo>(query);
+
+        await dbConnection.CloseAsync();
+        await dbConnection.DisposeAsync();
+
         return infos;
     }
 }

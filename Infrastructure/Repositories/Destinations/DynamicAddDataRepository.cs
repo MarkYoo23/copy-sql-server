@@ -4,6 +4,7 @@ using Domain.Models.CopyData;
 using Domain.Repositories.Destinations;
 using Infrastructure.Contexts;
 using Infrastructure.Helpers;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories.Destinations;
@@ -28,7 +29,7 @@ public class DynamicAddDataRepository : IDynamicAddDataRepository
 
         // INSERT COLUMNS
         var columnQuires = table.Columns
-            .Where(row => !row.IsComputedColumn)
+            .Where(row => !row.IsComputed)
             .Select(row => $"[{row.Name}], ")
             .ToList();
 
@@ -48,13 +49,22 @@ public class DynamicAddDataRepository : IDynamicAddDataRepository
             {
                 var colInfo = table.Columns[i];
 
-                if (colInfo.IsComputedColumn)
+                if (colInfo.IsComputed)
                 {
                     continue;
                 }
 
                 var colData = row[i];
-                rowBuilder.Append($"'{colData}', ");
+                var colDataType = colData.GetType();
+
+                if (colDataType == typeof(DateTime))
+                {
+                    rowBuilder.Append($"'{colData:yyyy/MM/dd hh:mm:ss}', ");
+                }
+                else
+                {
+                    rowBuilder.Append($"'{colData}', ");
+                }
             }
 
             rowBuilder.Length -= 2;
@@ -70,7 +80,7 @@ public class DynamicAddDataRepository : IDynamicAddDataRepository
         builder.AppendLine($"SET IDENTITY_INSERT {tableName} OFF");
         var query = builder.ToString();
 
-        await using var connection = _context.Database.GetDbConnection();
+        await using var connection = new SqlConnection(_context.Database.GetConnectionString());
         await connection.OpenAsync();
 
         await connection.ExecuteAsync(query);

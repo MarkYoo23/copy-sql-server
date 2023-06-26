@@ -2,6 +2,6 @@
 
 public class ColumnComputedInfo
 {
-    public string ColumnName { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
     public bool IsComputed { get; set; }
 }

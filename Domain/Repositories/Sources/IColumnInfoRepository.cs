@@ -6,5 +6,5 @@ namespace Domain.Repositories.Sources;
 
 public interface IColumnInfoRepository : IReadOnlyRepository<ColumnInfo>
 {
-    Task<IEnumerable<ColumnComputedInfo>> GetComputed(string tableName);
+    Task<IEnumerable<ColumnComputedInfo>> GetComputedAllAsync(string tableName);
 }

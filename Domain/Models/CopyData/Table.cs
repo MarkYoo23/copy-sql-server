@@ -6,29 +6,23 @@ namespace Domain.Models.CopyData;
 public class Table
 {
     public TableName Name { get; set; } = null!;
-    public Column[] Columns { get; set; } = null!;
-    public string[][] Data { get; set; } = null!;
+    public ColumnComputedInfo[] Columns { get; set; } = null!;
+    public object[][] Data { get; set; } = null!;
 
     public static Table Create(
         TableName name,
-        IEnumerable<ColumnInfo> columnInfos,
+        IEnumerable<ColumnComputedInfo> columns,
         IEnumerable<IDictionary<string, object>> sourceData)
     {
-        var columns = columnInfos
-            .Select(row => new Column()
-            {
-                Name = row.ColumnName,
-            })
-            .ToArray();
 
         var data = sourceData
-            .Select(row => row.Values.Select(col => col.ToString()).ToArray())
+            .Select(row => row.Values.Select(col => col).ToArray())
             .ToArray();
 
         return new Table()
         {
             Name = name,
-            Columns = columns,
+            Columns = columns.ToArray(),
             Data = data!,
         };
     }
