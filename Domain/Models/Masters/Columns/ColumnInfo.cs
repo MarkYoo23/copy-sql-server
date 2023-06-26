@@ -28,4 +28,5 @@ public class ColumnInfo : ValueObject
     public string? DomainCatalog { get; set; } = Empty;
     public string? DomainSchema { get; set; } = Empty;
     public string? DomainName { get; set; } = Empty;
+    public bool IsComputed { get; set; }
 }

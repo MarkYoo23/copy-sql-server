@@ -24,7 +24,7 @@ public class RowsCopyOriginToDestinationService
     public async Task ExecuteAsync(RowCopyOriginToDestinationRequest request)
     {
         // 테이블 정보 분석
-        var columnComputedInfos = await _columnInfoRepository.GetComputedAllAsync(request.Origin.Name);
+        var columnComputedInfos = await _columnInfoRepository.FindAllAsync(request.Origin.Name);
         
         // 테이블 데이터 호출
         var sourceData = await _dynamicGetDataRepository.GetAllAsync(

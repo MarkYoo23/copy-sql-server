@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.EntityConfigurations.Masters;
 
-public class ColumnInfoViewConfig: IEntityTypeConfiguration<ColumnInfo>
+public class ColumnInfoViewConfig : IEntityTypeConfiguration<ColumnInfo>
 {
     public void Configure(EntityTypeBuilder<ColumnInfo> builder)
     {
-        builder.ToView("COLUMNS", SchemaNames.SystemInformationSchema);
+        builder.ToView(null);
 
         builder.HasNoKey();
 
@@ -42,5 +42,6 @@ public class ColumnInfoViewConfig: IEntityTypeConfiguration<ColumnInfo>
         builder.Property(c => c.DomainCatalog).HasColumnName("DOMAIN_CATALOG");
         builder.Property(c => c.DomainSchema).HasColumnName("DOMAIN_SCHEMA");
         builder.Property(c => c.DomainName).HasColumnName("DOMAIN_NAME");
+        builder.Property(c => c.IsComputed).HasColumnName("IS_COMPUTED");
     }
 }

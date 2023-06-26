@@ -14,18 +14,11 @@ public class ColumnInfoController : ControllerBase
         _repository = repository;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var valueObjects = await _repository.GetAllAsync();
-        return Ok(valueObjects);
-    }
 
     [HttpGet("{tableName}")]
     public async Task<IActionResult> GetAllByTable([FromRoute] string tableName)
     {
-        var valueObjects = await _repository.FindAllAsync(
-            row => row.TableName == tableName);
+        var valueObjects = await _repository.FindAllAsync(tableName);
         return Ok(valueObjects);
     }
 }

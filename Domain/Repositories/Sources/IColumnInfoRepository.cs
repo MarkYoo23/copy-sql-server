@@ -1,10 +1,9 @@
-﻿using Domain.Models.Masters;
-using Domain.Models.Masters.Columns;
-using Domain.SeedWorks;
+﻿using Domain.Models.Masters.Columns;
 
 namespace Domain.Repositories.Sources;
 
-public interface IColumnInfoRepository : IReadOnlyRepository<ColumnInfo>
+public interface IColumnInfoRepository
 {
-    Task<IEnumerable<ColumnComputedInfo>> GetComputedAllAsync(string tableName);
+    IEnumerable<ColumnInfo> FindAll(string tableName);
+    Task<IEnumerable<ColumnInfo>> FindAllAsync(string tableName);
 }

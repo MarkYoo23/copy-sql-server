@@ -1,43 +1,49 @@
-﻿using Dapper;
-using Domain.Models.Masters;
+﻿using System.Linq.Expressions;
 using Domain.Models.Masters.Columns;
 using Domain.Repositories.Sources;
 using Infrastructure.Contexts;
-using Infrastructure.Repositories.Commons;
+using Infrastructure.Services;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories.Sources;
 
-public class ColumnInfoRepository : ReadOnlyRepository<ColumnInfo>, IColumnInfoRepository
+public class ColumnInfoRepository : IColumnInfoRepository
 {
     private readonly SourceContext _context;
+    private readonly SqlManager _sqlManager;
 
-    public ColumnInfoRepository(SourceContext context) : base(context)
+    public ColumnInfoRepository(
+        SourceContext context,
+        SqlManager sqlManager)
     {
         _context = context;
+        _sqlManager = sqlManager;
     }
 
-    public async Task<IEnumerable<ColumnComputedInfo>> GetComputedAllAsync(string tableName)
+    public IEnumerable<ColumnInfo> FindAll(string tableName)
     {
-        // ReSharper disable once StringLiteralTypo
-        var query = @$"
-SELECT 
-    COLUMN_NAME as Name, 
-    COLUMNPROPERTY(OBJECT_ID('dbo' + '.' + '{tableName}'), COLUMN_NAME, 'IsComputed') as IsComputed 
-FROM
-    INFORMATION_SCHEMA.COLUMNS
-WHERE
-    TABLE_NAME = '{tableName}'";
+        var query = CreateQuery(tableName);
+        var results = query.ToList();
+        return results;
+    }
 
-        await using var dbConnection = new SqlConnection(_context.Database.GetConnectionString());
-        await dbConnection.OpenAsync();
+    public async Task<IEnumerable<ColumnInfo>> FindAllAsync(string tableName)
+    {
+        var query = CreateQuery(tableName);
+        var results = await query.ToListAsync();
+        return results;
+    }
 
-        var infos = await dbConnection.QueryAsync<ColumnComputedInfo>(query);
+    private IQueryable<ColumnInfo> CreateQuery(string tableName)
+    {
+        var builder = new SqlConnectionStringBuilder(_context.Database.GetConnectionString());
+        
+        var baseQuery = _sqlManager["SelectInformationSchemaColumnWithIsComputed.sql"]
+            .Replace("{DATABASE_NAME}", builder.InitialCatalog);
 
-        await dbConnection.CloseAsync();
-        await dbConnection.DisposeAsync();
+        var tableNameParameter = new SqlParameter("@tableName", tableName);
 
-        return infos;
+        return _context.ColumnInfos.FromSqlRaw(baseQuery, tableNameParameter);
     }
 }

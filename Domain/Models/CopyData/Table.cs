@@ -6,12 +6,12 @@ namespace Domain.Models.CopyData;
 public class Table
 {
     public TableName Name { get; set; } = null!;
-    public ColumnComputedInfo[] Columns { get; set; } = null!;
+    public ColumnInfo[] Columns { get; set; } = null!;
     public object[][] Data { get; set; } = null!;
 
     public static Table Create(
         TableName name,
-        IEnumerable<ColumnComputedInfo> columns,
+        IEnumerable<ColumnInfo> columns,
         IEnumerable<IDictionary<string, object>> sourceData)
     {
 

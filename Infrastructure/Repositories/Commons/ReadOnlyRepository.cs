@@ -13,15 +13,15 @@ public abstract class ReadOnlyRepository<T> : IReadOnlyRepository<T> where T : V
         _context = context;
     }
 
-    public IEnumerable<T> GetAll()
+    public virtual IEnumerable<T> GetAll()
         => _context.Set<T>().ToList();
 
-    public async Task<IEnumerable<T>> GetAllAsync()
+    public virtual async Task<IEnumerable<T>> GetAllAsync()
         => await _context.Set<T>().ToListAsync();
 
-    public IEnumerable<T> FindAll(Expression<Func<T, bool>> expression)
+    public virtual IEnumerable<T> FindAll(Expression<Func<T, bool>> expression)
         => _context.Set<T>().Where(expression).ToList();
 
-    public async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> expression)
+    public virtual async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> expression)
         => await _context.Set<T>().Where(expression).ToListAsync();
 }

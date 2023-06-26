@@ -30,7 +30,7 @@ public class DynamicAddDataRepository : IDynamicAddDataRepository
         // INSERT COLUMNS
         var columnQuires = table.Columns
             .Where(row => !row.IsComputed)
-            .Select(row => $"[{row.Name}], ")
+            .Select(row => $"[{row.ColumnName}], ")
             .ToList();
 
         builder.Append($"INSERT INTO {tableName} (");
